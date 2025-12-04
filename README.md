@@ -46,7 +46,7 @@ This repository focuses on this layer, which translates high-level commands into
 * `/datasheets`: The component datasheets we use.
 
 ## 🎥 Demonstration
-more image and testing on my LinkedIn: dewapramudya (https://linkedin.com/in/dewapramudya)
+more image and testing on my LinkedIn: [dewapramudya](https://linkedin.com/in/dewapramudya)
 
 ---
 *Developed by Dewa Pramydta at Electronic Engineering Polytechnic Institute of Surabaya (EEPIS).*
