@@ -4,7 +4,7 @@ This repository contains the source code and documentation for my undergraduate 
 
 The core research focused on the low-level controller's ability to execute trajectory tracking commands from a high-level planner.
 
-** [Read the IEEE Conference Paper](https://doi.org/10.1109/ICVEE59738.2023.10348231)**
+**📄[Read the IEEE Conference Paper](https://doi.org/10.1109/ICVEE59738.2023.10348231)**
 
 ![Autonomous Vehicle Field Test](placeholder.png)
 ---
