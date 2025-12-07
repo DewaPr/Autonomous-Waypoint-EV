@@ -6,8 +6,17 @@ The core research focused on the low-level controller's ability to execute traje
 
 **📄[Read the IEEE Conference Paper](https://doi.org/10.1109/ICVEE59738.2023.10348231)**
 
-![Autonomous Vehicle Field Test](placeholder.png)
----
+** [Autonomous Car Body](https://github.com/DewaPr/Autonomous-Waypoint-EV/blob/main/images/Official%20testing%20with%20the%20directorate%20general%20of%20universities%2C%20Prof.%20Dr.%20Ir.%20Nizam%20M.Sc.%20Ph.D.jpg)
+
+## Test Videos
+* **[Obstacle Avoidance Outside Car POV](https://drive.google.com/file/d/1uJbg33MiOxGYNZFdr3-Tg0fdbmy_W6BV/view?usp=sharing)**
+* **[Obstacle Avoidance Steering POV](https://drive.google.com/file/d/1a7Viich5UEiji-1FOAW4bwDuT_RbOzFk/view?usp=sharing)**
+* **[Path4 Outside Car POV](https://drive.google.com/file/d/1nScOytIyXUA_hNI2v9JQ6n9wpI861W92/view?usp=sharing)**
+* **[Path4 Steering POV](https://drive.google.com/file/d/15KvCHcvea8IMGCnsBSTB9wiy_GfPaA42/view?usp=sharing)**
+* **[Path5 Outside Car POV](https://drive.google.com/file/d/1kHZRzk53AjELgQN9o9s0ZDN-GLw2w79a/view?usp=sharing)**
+* **[Path5 Sterring POV](https://drive.google.com/file/d/1KwWKs7TE-Yf4vmhg593MW81YMnaruxMK/view?usp=sharing)**
+* **[Path10 Outside Car POV](https://drive.google.com/file/d/13tGAtkVPWCAK_A_Q4I5gw0dKqqMXEaAY/view?usp=sharing)**
+* **[Path10 Steering POV](https://drive.google.com/file/d/1_yt8tsWci4t8FFlRQIWo6Av3mCr4Lhnl/view?usp=sharing)**
 
 ## Key Achievements
 * **First Mover:** Developed one of the pioneering autonomous electric vehicle platforms in Indonesia.
