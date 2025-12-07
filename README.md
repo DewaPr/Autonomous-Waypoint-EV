@@ -6,7 +6,7 @@ The core research focused on the low-level controller's ability to execute traje
 
 **📄[Read the IEEE Conference Paper](https://doi.org/10.1109/ICVEE59738.2023.10348231)**
 
-** [Autonomous Car Body](https://github.com/DewaPr/Autonomous-Waypoint-EV/blob/main/images/Official%20testing%20with%20the%20directorate%20general%20of%20universities%2C%20Prof.%20Dr.%20Ir.%20Nizam%20M.Sc.%20Ph.D.jpg)
+![Autonomous Car Body](https://github.com/DewaPr/Autonomous-Waypoint-EV/blob/main/images/Official%20testing%20with%20the%20directorate%20general%20of%20universities%2C%20Prof.%20Dr.%20Ir.%20Nizam%20M.Sc.%20Ph.D.jpg)
 
 ## Test Videos
 * **[Obstacle Avoidance Outside Car POV](https://drive.google.com/file/d/1uJbg33MiOxGYNZFdr3-Tg0fdbmy_W6BV/view?usp=sharing)**
