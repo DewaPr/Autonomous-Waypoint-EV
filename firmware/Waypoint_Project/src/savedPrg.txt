@@ -1,0 +1,407 @@
+#include <Arduino.h>
+#include <DFRobot_QMC5883.h>
+
+DFRobot_QMC5883 compass(&Wire, /*I2C addr*/HMC5883L_ADDRESS);
+#define COMPASS_SAMPLES 5
+
+void setup()
+{
+  Serial.setRx(PA3);
+  Serial.setTx(PA2);
+  Serial.begin(115200);
+
+  Wire.setSDA(PB9);
+  Wire.setSCL(PB8);
+  
+  while (!compass.begin())
+  {
+    Serial.println("Could not find a valid 5883 sensor, check wiring!");
+    delay(500);
+  }
+
+  if(compass.isHMC())
+  {
+    Serial.println("Initialize HMC5883");
+
+    //Set/get the compass signal gain range, default to be 1.3 Ga
+    compass.setRange(HMC5883L_RANGE_1_3GA);
+    // Serial.print("compass range is:");
+    // Serial.println(compass.getRange());
+
+    //Set/get measurement mode
+    compass.setMeasurementMode(HMC5883L_CONTINOUS);
+
+    //Set/get the data collection frequency of the sensor
+    compass.setDataRate(HMC5883L_DATARATE_30HZ);
+    // Serial.print("compass data rate is:");
+    // Serial.println(compass.getDataRate());
+
+    //Get/get sensor status
+    compass.setSamples(HMC5883L_SAMPLES_8);
+    // Serial.print("compass samples is:");
+    // Serial.println(compass.getSamples());
+  }
+  else if(compass.isQMC())
+  {
+    Serial.println("Initialize QMC5883");
+    // compass.setRange(QMC5883_RANGE_2GA);
+    // Serial.print("compass range is:");
+    // Serial.println(compass.getRange());
+
+    // compass.setMeasurementMode(QMC5883_CONTINOUS);
+    // Serial.print("compass measurement mode is:");
+    // Serial.println(compass.getMeasurementMode());
+
+    // compass.setDataRate(QMC5883_DATARATE_50HZ);
+    // Serial.print("compass data rate is:");
+    // Serial.println(compass.getDataRate());
+
+    // compass.setSamples(QMC5883_SAMPLES_8);
+    // Serial.print("compass samples is:");
+    // Serial.println(compass.getSamples());
+  }
+  else if(compass.isVCM())
+  {
+    Serial.println("Initialize VCM5883L");
+    // compass.setMeasurementMode(VCM5883L_CONTINOUS);
+    // Serial.print("compass measurement mode is:");
+    // Serial.println(compass.getMeasurementMode());
+
+    // compass.setDataRate(VCM5883L_DATARATE_200HZ);
+    // Serial.print("compass data rate is:");
+    // Serial.println(compass.getDataRate());
+  }
+  
+  float declinationAngle = (0.0 + (0.0 / 60.0)) / (180 / PI);
+  compass.setDeclinationAngle(declinationAngle);
+  compass.getHeadingDegrees();
+  delay(1000);
+}
+
+float dev = 0;
+void loop()
+{
+  sVector_t mag = compass.readRaw();
+  float _dataTmp = mag.HeadingDegress;
+  for(int i = 0; i < COMPASS_SAMPLES; i++){
+    mag = compass.readRaw();
+    _dataTmp += mag.HeadingDegress;
+    _dataTmp /= 2;
+  }
+  _dataTmp = 360 - _dataTmp;
+  if(dev < fabs(mag.XAxis)){
+    dev = fabs(mag.XAxis);
+  }
+  Serial.print("X:");
+  Serial.print(mag.XAxis);
+  Serial.print(" Y:");
+  Serial.print(mag.YAxis);
+  Serial.print(" Z:");
+  Serial.print(mag.ZAxis);
+  Serial.print(" Degress: ");
+  Serial.print(_dataTmp);
+  Serial.print(" devX: ");
+  Serial.println(dev);
+  // delay(100);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+File myFile;
+
+struct can_frame canMsg;
+MCP2515 mcp2515(PA4);
+
+unsigned long currentTime;
+
+void setup() {
+  Serial.setRx(PA10);
+  Serial.setTx(PA9);
+  Serial.begin(115200);
+
+  SPI.setMISO(PA6);
+  SPI.setMOSI(PA7);
+  SPI.setSCLK(PA5);
+  if (!SD.begin(PA3)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  Serial.println("initialization done.");
+
+  mcp2515.reset();
+  mcp2515.setBitrate(CAN_125KBPS, MCP_16MHZ);
+  mcp2515.setNormalMode();
+  Serial.println("------- CAN Read ----------");
+  Serial.println("ID  DLC   DATA");
+}
+
+void loop() {
+  if (mcp2515.readMessage(&canMsg) == MCP2515::ERROR_OK) {
+    Serial.print(canMsg.can_id, HEX); // print ID
+    Serial.print(" ");
+    Serial.print(canMsg.can_dlc, HEX); // print DLC
+    Serial.print(" ");
+
+    String canData = "";
+    for (int i = 0; i < canMsg.can_dlc; i++)  { // print the data
+      canData += ("0x" + String(canMsg.data[i], HEX) + " ");
+      Serial.print(canMsg.data[i], HEX);
+      Serial.print(" ");
+    }    
+
+    SD.remove("test.txt");
+    myFile = SD.open("test.txt", FILE_WRITE);
+
+    // if the file opened okay, write to it:
+    if (myFile) {
+      Serial.print("Writing to test.txt...");
+      myFile.println(canData);
+      // close the file:
+      myFile.close();
+      Serial.println("done.");
+    } else {
+      // if the file didn't open, print an error:
+      Serial.println("error opening test.txt");
+    }
+
+    myFile = SD.open("test.txt");
+    if (myFile) {
+      Serial.println("test.txt:");
+
+      // read from the file until there's nothing else in it:
+      while (myFile.available()) {
+        Serial.write(myFile.read());
+      }
+      // close the file:
+      myFile.close();
+    } else {
+      // if the file didn't open, print an error:
+      Serial.println("error opening test.txt");
+    }
+    Serial.println();
+  }
+
+  if (currentTime < millis()) {
+    currentTime = millis() + 600;
+    canMsg.can_id  = 0x0F6;
+    canMsg.can_dlc = 8;
+    canMsg.data[0] = 0x8E;
+    canMsg.data[1] = 0x87;
+    canMsg.data[2] = 0x32;
+    canMsg.data[3] = 0xFA;
+    canMsg.data[4] = 0x26;
+    canMsg.data[5] = 0x8E;
+    canMsg.data[6] = 0xBE;
+    canMsg.data[7] = 0x86;
+    if (mcp2515.sendMessage(&canMsg) == MCP2515::ERROR_OK){
+      Serial.println("Message Sent!");
+    }
+    else{
+      Serial.println("Message Not Sent!");
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+HardwareSerial debug(PA3, PA2);
+HardwareSerial gnss(PA10, PA9);
+
+byte gnssData[150];
+byte count;
+
+long lastLngL = 1127048558;
+long lastLatL = -72571767;
+
+float deviation = 0;
+
+void setup(){
+  gnss.begin(115200);  
+  debug.begin(115200);
+  debug.println("Serial alive!");
+  
+  count = 0;
+  for(int i = 0; i < sizeof(gnssData); i++){
+    gnssData[i] = 0;
+  }
+}
+
+void loop(){
+  bool dataComing = false;
+  unsigned long dataTimeout;
+
+  if(gnss.available()) {
+    dataComing = true;
+  }
+  while(dataComing){
+    if(gnss.available()){
+      gnssData[count++] = (byte)gnss.read();
+      if(count > sizeof(gnssData) - 1) count = sizeof(gnssData) - 1;
+      dataTimeout = micros();
+    }
+    if(dataTimeout + 100 < micros()) dataComing = false;
+  }
+  if(count > 0){
+    count--;
+    byte chkA = 0;
+    byte chkB = 0;
+    for(int i = 2; i <= count - 2; i++){
+      int _buff;
+      _buff = (chkA + gnssData[i]) & 0xFF;
+      chkA = _buff;
+      _buff = (chkB + chkA) & 0xFF;
+      chkB = _buff;
+    }
+    String str = "";
+    if(gnssData[count - 1] == chkA && gnssData[count] == chkB){
+      str = "ok";
+      str += " | ";
+      if(gnssData[26] == 0x02) str += "2D fix";
+      else if(gnssData[26] == 0x03) str += "3D fix";
+      else str += "no fix";
+      str += " | ";
+
+      if(gnssData[27] & 0b00000010) str += "DGNSS | ";
+
+      signed long lngL;
+      signed long latL;
+
+      lngL = gnssData[30] | gnssData[31] << 8 | gnssData[32] << 16 | gnssData[33] << 24;
+      latL = gnssData[34] | gnssData[35] << 8 | gnssData[36] << 16 | gnssData[37] << 24;
+
+      str += "lat: " + String(latL) + ", long: " + String(lngL);
+      str += " | ";
+
+      if(latL && lngL){
+        float speed;
+        float distance;
+
+        const int R = 6371e3; // metres
+        const float latR1 = latL * 1e-7 * PI/180;
+        const float latR2 = lastLatL * 1e-7 * PI/180;
+        const float deltaLat = (latL-lastLatL) * 1e-7 * PI/180;
+        const float deltaLng = (lngL-lastLngL) * 1e-7 * PI/180;
+
+        const float a = sin(deltaLat/2) * sin(deltaLat/2) +
+                      cos(latR1) * cos(latR2) *
+                      sin(deltaLng/2) * sin(deltaLng/2);
+        const float c = 2 * asin(sqrt(a));
+
+        distance = R * c;
+        if(distance > deviation) deviation = distance;
+
+        speed = (gnssData[66] | gnssData[67] << 8 | gnssData[68] << 16 | gnssData[69] << 24) * 1e-3;
+        
+        str += "spd: " + String(speed * (1e-3 * 3600) , 4) + "km/h";
+        str += " | ";
+        str += "dis: " + String(distance);
+        str += " | ";
+        str += "dev: " + String(deviation);
+        str += " | ";
+      }
+    }
+    else{
+      str = "ng";
+    }
+
+    debug.print(str);
+    debug.println();
+    for(int i = 0; i < sizeof(gnssData); i++){
+      gnssData[i] = 0;
+    }
+  }
+  count = 0;
+}
+
+//////////////////////////////////////////////////////////////////////
+float headCar;
+    
+headCar = atan2((long2 - long1), (lat2 - lat1));
+
+if(headCar < 0) headCar += 2*PI;
+if(headCar > 2*PI) headCar -= 2*PI;
+
+headCar *= 180.0 / PI;
+/////////////////////////////////////////////////////////////////////
+
+
+U8G2_SH1106_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/ U8X8_PIN_NONE);
+
+void drawLineAngle(byte, byte, byte, float, bool);
+
+void setup(){
+  pinMode(PA0, INPUT_PULLUP);
+
+  Serial.setRx(PA3);
+  Serial.setTx(PA2);
+  Serial.begin(115200);
+
+  Wire.setSDA(PB7);
+  Wire.setSCL(PB6);
+  Wire.begin();
+
+  // compassBegin();
+  // setDeclinationAngle((0.0 + (45.0 / 60.0)) / (180 / PI));
+
+  // delay(5000);
+  u8g2.begin();
+  u8g2.clearBuffer();
+  
+  u8g2.setFontMode(1);
+  u8g2.setDrawColor(1);
+  u8g2.setFontPosTop();
+  
+  u8g2.setFont(u8g2_font_profont10_tf);
+  u8g2.drawStr(0, 0,  "GPS Status:");
+  u8g2.drawStr(0, 8,  "Now Long  : ");
+  u8g2.drawStr(0, 16, "Now Lat   :");
+  u8g2.drawStr(0, 24, "Next Long :");
+  u8g2.drawStr(0, 32, "Next Lat  :");
+  u8g2.drawStr(0, 40, "Now Head  :");
+  u8g2.drawStr(0, 48, "Ideal Head:");
+  u8g2.drawStr(0, 56, "Now Speed :");
+  
+  u8g2.drawStr(56, 0,  "3D FIX DGNSS");
+  u8g2.drawStr(56, 8,  "112.704855");
+  u8g2.drawStr(56, 16, "-7.257176");
+  u8g2.drawStr(56, 24, "112.704827");
+  u8g2.drawStr(56, 32, "-7.257981");
+  u8g2.drawStr(56, 40, "361.8 deg");
+  u8g2.drawStr(56, 48, "362.2 deg");
+  u8g2.drawStr(56, 56, "16.4 km/h");
+
+  u8g2.sendBuffer();
+
+  u8g2.setDrawColor(1);
+  u8g2.drawLine(114, 30, 114, 35);
+  u8g2.drawLine(115, 30, 115, 36);
+  u8g2.drawLine(116, 30, 116, 35);
+  u8g2.drawLine(113, 34, 117, 34);
+  u8g2.drawLine(112, 33, 118, 33);
+
+  u8g2.drawDisc(115, 51, 12, U8G2_DRAW_ALL);
+  u8g2.sendBuffer();
+
+  drawLineAngle(115, 51, 10, 0, true);
+  u8g2.sendBuffer();
+}
+
+void loop(void) {
+}
+
+void drawLineAngle(byte _x, byte _y, byte _h, float _deg, bool _e){
+  _deg += 2;
+  if(_e){
+    u8g2.setDrawColor(0);
+    u8g2.drawDisc(_x, _y, _h, U8G2_DRAW_ALL);
+    u8g2.setDrawColor(1);
+  }
+  _h++;
+  u8g2.drawDisc(_x, _y, 5, U8G2_DRAW_ALL);
+  u8g2.setDrawColor(0);
+  u8g2.drawDisc(_x, _y, 4, U8G2_DRAW_ALL);
+  u8g2.setDrawColor(1);
+  u8g2.drawDisc(_x, _y, 1, U8G2_DRAW_ALL);
+  for(int i = _deg - 9; i <= _deg + 9; i += 3){
+    u8g2.drawLine(_x, _y, _x + _h * sin(i * PI / 180), _y - _h * cos(i * PI / 180));
+  }
+}
